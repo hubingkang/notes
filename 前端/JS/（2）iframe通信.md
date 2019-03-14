@@ -25,7 +25,9 @@ event上的数据
 
 ### 例子
 
-**父组件**
+**例子1：**
+
+普通通信-主页面
 
 ```js
  window.onload = function() {
@@ -38,11 +40,47 @@ event上的数据
   }
 ```
 
-**子组件**
+普通通信-iframe页面
 
 ```js
 window.addEventListener('message', function(event){
     console.log('iframe', event)
     top.postMessage('你好,主页面', '*')
+  }, false)
+```
+
+**例子2:**
+
+MessageChannel通信-主页面
+
+```js
+ window.onload = function() {
+    const { port1, port2 } = new MessageChannel;
+
+    const iframe = document.getElementById('iframe');
+    const otherWindow = iframe.contentWindow;
+    // 讲管道port2传输过去
+    otherWindow.postMessage('你好iframe', '*', [port2])
+
+    // 定义port1管道的方法
+    port1.onmessage = function(e) {
+      console.log('来自port2的消息', e)
+      port1.postMessage('谢谢你iframe')
+    }
+  }
+```
+
+MessageChannel通信-iframe页面
+
+```js
+window.addEventListener('message', function(e){
+    console.log('iframe', e)
+    // top.postMessage('你好,主页面', '*')
+    // 发送消息
+    e.ports[0].postMessage('你好主页面')
+    // 定义port2的方法
+    e.ports[0].onmessage = function(e) {
+      console.log('来自port1的消息', e)
+    }
   }, false)
 ```
